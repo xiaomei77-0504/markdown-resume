@@ -1,0 +1,32 @@
+name: Build Chinese QRLP resume PDF
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Install build tools and Chinese fonts
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y pandoc python3-pip fonts-noto-cjk
+          python3 -m pip install weasyprint
+      - name: Build QRLP resume
+        run: |
+          mkdir -p output/html output/pdf
+          pandoc -s --embed-resources --standalone \
+            -c styles/cn-qrlp/main.css \
+            src/王颖琦_GE_QRLP.md \
+            -o output/html/王颖琦_GE_QRLP.html
+          python3 -m weasyprint \
+            --base-url "$PWD" \
+            output/html/王颖琦_GE_QRLP.html \
+            output/pdf/王颖琦_GE_QRLP.pdf
+      - name: Upload resume files
+        uses: actions/upload-artifact@v4
+        with:
+          name: resume-output
+          path: output/
